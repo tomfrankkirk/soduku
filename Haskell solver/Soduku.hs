@@ -1,4 +1,4 @@
-module Soduku  where 
+module Soduku where 
 
    -- A Soduku solving algorithm. Tom Kirk, October 2017 
    -- Works on moderately puzzles, not hard ones yet. 
@@ -32,7 +32,7 @@ module Soduku  where
 
    -- Get values at positions [(x1,y1), (x2,y2)...]
    get :: Soduku -> [(Integer, Integer)] -> [Integer]     
-   get sod coords = map (getElem sod) coords
+   get sod = map (getElem sod)
 
    -- Convert (x,y) to array index
    rc2Index :: (Integer, Integer) -> Integer 
@@ -89,6 +89,10 @@ module Soduku  where
    formNewSoduku sod newElem newIndex = 
       (slice 0 (newIndex - 1) sod) ++ [newElem] ++ (slice (newIndex + 1) (fromIntegral (length sod)) sod) 
 
+   -- Check two lists are equivalent, ie same elements but different order. 
+   listsAreEquivalent :: [Integer] -> [Integer] -> Bool
+   listsAreEquivalent s1 s2 = 
+      (length s1 == length s2) && all (== True) (map (`elem` s1) s2)
 
    -- Solution logic functions ----------------------------------------------------------
 
@@ -153,7 +157,7 @@ module Soduku  where
    -- Next determinate element: the first position for which there is a unique potential value. 
    nextDeterminateElement :: Soduku -> Integer
    nextDeterminateElement sod = let index = ifindIndex (\i x -> (length x == 1) && (sod!!i == 0)) (potentials sod) in 
-                                       if isNothing index then -1 else fromIntegral (fromJust index)
+                                       maybe (-1) fromIntegral index
     
    -- Perform one iteration of the solution algorithm. If the soduku is incomplete and determinate, 
    -- get the next determinate element and "set" it to form the basis for the next solution step.                                     
@@ -168,20 +172,19 @@ module Soduku  where
                         newSod
                           
    -- Solve: call solveStep recursively. Check for determiacy and completeness at each step.                      
-   solve :: [Integer] -> IO [Integer]      
+   solve :: [Integer] -> IO Soduku      
    solve sod = do 
       let new = solveStep sod 
       prIntegerSoduku new
       
       if isComplete new then do
-         putStrLn "Solution is complete."
-
+         putStrLn "Solution is complete"
          if isCorrect new then do 
-            putStrLn "Solution is correct."
+            putStrLn "Solution is correct"   
             return (new)
          else do 
-            putStrLn "Solution is not correct."
-            return (new)
+            putStrLn "Solution not correct"  
+            return (new) 
 
       else
          if isDeterminate new then 
@@ -196,9 +199,9 @@ module Soduku  where
             rowSet = get sod (rowCoords row)
             colSet = get sod (colCoords col) 
             boxSet = get sod (boxCoords (row,col)) in
-               (rowSet == colSet) && (colSet == boxSet) && (boxSet == rowSet)   
-               
-   -- isCorrect :: Soduku -> Bool 
+               all (== True) (map (listsAreEquivalent fullSet) [rowSet, colSet, boxSet])  
+
+   isCorrect :: Soduku -> Bool 
    isCorrect sod = 
-     all (\x -> x) (map (elementIsCorrect sod) [0..80])
+     all (== True) (map (elementIsCorrect sod) [0..80])
 

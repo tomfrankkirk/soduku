@@ -23,5 +23,5 @@ module Main where
         0, 0, 0, 0, 2, 0, 0, 0, 0, 
         0, 0, 9, 8, 0, 0, 0, 3, 6, 
         0, 0, 0, 3, 0, 6, 0, 9, 0 ]
-
-   main = putStrLn "Hello"
+        
+   main = putStrLn "Ready"
